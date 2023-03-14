@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>暗記アプリ</title>
+
+
+</head>
+	<body>
+	
+		<input type="file" accept="image/*" onChange=" sizeset(); func2(this.files,false); ankiseets = [] " id="inputfile" style="font-size: 150%;">
+		<button onclick="sizeup()" id = "button" style="position: absolute;
+			top: 0px; left: 500px; font-size: 150%;">拡大</button>
+		<button onclick="sizedown()" style="position: absolute;
+			top: 0px; left: 600px; font-size: 150%;">縮小</button>
+		<button onclick="saveankiseet()" style="position: absolute;
+			top: 0px; left: 750px; font-size: 150%;">データ保存</button>
+		<button onclick="loadankiseet()" style="position: absolute;
+			top: 0px; left: 900px; font-size: 150%;">データ読込</button>
+		<button onclick="removeankiseet()" style="position: absolute;
+			top: 0px; left:1050px; font-size: 120%;">データ全削除(重い時)</button>
+		<canvas id="canvas2" width="1500" height="4000"></canvas>
+		<canvas id="canvas1" width="4000" height="4000"></canvas>
+		
+		<script>
+			//キーボード操作時のイベントリスナー登録
+			//document.addEventListener("keyup", keyUpDownFunc());
+			//document.addEventListener("keydown", keyUpDownFunc());
+	//----------------------------------------------------------------
+		/*localstorage....
+・imagenames
+・start
+・
+*/
+			canvas1 = document.getElementById("canvas1");
+		    c = canvas1.getContext('2d');
+		    canvas2 = document.getElementById("canvas2");
+		    ctx = canvas2.getContext('2d');
+		    var file;
+
+		    var canvsize = 1;
+		    var touchcount = 0;
+			 let ankipenmode = false;
+			 
+			 let imns = []; 
+			 
+			 
+		    function isSmartPhone() {
+			  if (navigator.userAgent.match(/iPhone|Android.+Mobile/)) {
+			   alert("お使いのスマートフォンはこのアプリに適していません。スマホ版をお使いください。");
+			  } else {
+			    
+			  	}
+			}
+			isSmartPhone();
+			
+		
+let onetouchF = false;	
+let onetouchE = false;	
+let ankiseets = [];
+let firstpointX = 0;
+let firstpointY = 0;
+let endpointX = 0;
+let endpointY = 0;
+
+let tpx = 0;
+let tpy = 0;
+
+let tcx = 0;
+let tcy = 0;
+
+let overclick = false;
+
+
+document.getElementById("canvas1").addEventListener('touchmove',() => {			
+		if(event.touches.length < 2){
+		if(ankipenmode == true){
+		  event.preventDefault();
+		  }
+		  
+		  onetouch = true;
+		  }else{
+		  onetouch = false;
+		  }
+		  });
+	document.getElementById("canvas1").addEventListener('touchstart',() => {
+
+	var touchObject = event.changedTouches[0] ;
+
+	 tpx = touchObject.pageX ;
+	 tpy = touchObject.pageY ;
+	 tcx = touchObject.clientX;
+	 tcy = touchObject.clientY;
+	if(tpy > 50 && tcy < window.innerHeight - 80){
+				overclick = false;
+			}else{
+				overclick = true;
+			}
+	if(event.touches.length < 2){
+		  
+		  onetouchF = true;
+		  }else{
+		  onetouchF = false;
+		  }
+	//window.setTimeout(ankiseetdrawF, 8);
+		ankiseetdrawF();
+		for(var i = 0;i < ankiseets.length;i++){
+			ankiseets[i].onclickcheck(tpx,tpy);
+		}
+		});
+			// タッチ終了
+		document.getElementById("canvas1").addEventListener('touchend',() => {
+	
+			ankiseetdraw = false;
+			var touchObject = event.changedTouches[0] ;
+		    tpx = touchObject.pageX ;
+			 tpy = touchObject.pageY ;
+			 tcx = touchObject.clientX;
+			 tcy = touchObject.clientY;
+			function touchescheck(){
+	if(event.touches.length < 2){
+		  
+		  onetouchE = true;
+		  }else{
+		  onetouchE = false;
+		  }
+		  }
+		  touchescheck();
+//	window.setTimeout(ankiseetdrawE, 3);
+		ankiseetdrawE();		
+		});
+		function ankiseetdrawF(){
+			if(onetouchF == true){
+				if(ankipenmode == true){
+				firstpointX = tpx;
+				firstpointY = tpy - 50;
+			}
+			}
+		}
+		function ankiseetdrawE(){
+			if(onetouchE == true){
+				if(ankipenmode == true){
+				endpointX = tpx;
+				endpointY = tpy - 50;
+		    	if(tpy > 50 && tcy < window.innerHeight - 80 && overclick == false){
+				ankiseets[ankiseets.length] = new ankiseet(firstpointX,firstpointY,endpointX,endpointY);
+				}
+				onetouchF = false;
+				onetouchE = false;
+			}
+			}
+		}
+	
+		let imagename = "";
+		let imagenames = [];
+		if(localStorage.getItem("start") == "ok"){
+		}else{
+		imagenames = [];
+		localStorage.setItem("imagenames",imagenames);
+		localStorage.setItem("start","ok");
+		alert("初期データを構築しました。");
+		}
+
+		function remove(imn){
+		localStorage.removeItem(imn);
+		}
+		function reset(){
+			localStorage.clear();
+			location.reload();
+
+		}
+		
+		let nowfile = "";
+		let imagewidth = 0;
+		let imageheigth = 0;
+		let image;
+		function func2(files,afterload) {
+		    // canvasの定義
+			 file = files;
+		    
+		    var reader = new FileReader();
+			
+			
+		    reader.onload = function(event) {
+		        image = new Image();
+		        image.onload = function() {
+		                         
+												  // 画像の圧縮
+		            var canvaswidth= canvas2.width;
+		            var canvasheight = canvas2.height;
+		            imagewidth = image.naturalWidth;      // naturalWidthは元の画像の幅
+		            imageheight = image.naturalHeight;
+		            var canvasaspect = canvasheight / canvaswidth;
+		            var aspect = imageheight / imagewidth;
+		            if (aspect <= canvasaspect) {        // 縦横比≦canvas縦横比→横長→canvasの横幅がネックに
+		                var image2width = canvaswidth;
+		                var zip = canvaswidth / imagewidth;
+		                var image2height = zip * imageheight;
+		            }
+		            else {                              // 縦長のとき
+		                image2height = canvasheight;
+		                zip = canvasheight / imageheight;
+		                image2width = zip * imagewidth;
+		            }
+		            // canvas全体をgrayにする（本質的ではない）
+		           // ctx.fillStyle = 'gray';
+		            //ctx.fillRect(0, 0, canvaswidth, canvasheight);
+		            // 画像を圧縮してcanvas表示
+						
+						ctx.clearRect(0,0,canvas2.width,canvas2.height);
+		            	ctx.drawImage(image, 0, 30, image2width, image2height);
+						nowfile = file[0].name; 
+						imns = localStorage.getItem("imagenames").split(",");
+
+						if(afterload == false){
+							for(var i = 0; i < imns.length;i++){
+								if(nowfile == imns[i]){
+									var result = window.confirm("保存したデータがあります。開きますか？");
+									if(result == true){
+										loadankiseet();
+									}	
+								}
+							}
+						}
+							/*if(image.src == imagename){
+							alert("sameimage!");
+																
+							}*/
+			
+		        }
+		        image.src = event.target.result;
+		    }
+		    reader.readAsDataURL(files[0]);
+		}
+		
+		function sizeset(){
+			canvas1.width = window.innerWidth;
+			canvas1.height = window.innerHeight;
+			canvas2.width = window.innerWidth;
+			canvas2.height = window.innerHeight;
+		}
+		
+		var sx = 0; 
+		var sy = 0; 
+		var cx = 0; 
+		var cy = 0; 
+		var innerh;
+		let buttons = [];
+		
+		let ankipenmodeN = false;
+		var text = "";
+		class Button{
+		constructor(x,y,w,h,name,tx){
+			this.bx = x;
+			this.by = y;
+			this.bw = w;
+			this.bh = h;
+			this.name = name;
+			this.btx = tx;
+		}
+		show(){
+			c.fillStyle = "dimgray";
+			if(cx > this.bx && cx < this.bx + this.bw){
+				if(cy > this.by + innerh + 50 && cy < (this.by + innerh) + this.bh + 50){
+				c.fillStyle = "gray";
+				}
+			}
+			
+			c.fillRect(sx + this.bx,sy + (innerh +this.by),this.bw,this.bh);
+			
+				text = this.name;
+			
+			if(this.name == "暗記ペン"){
+				if(ankipenmode == false){
+					text = "見るモード";
+				}
+				if(ankipenmode == true){
+					text = "暗記ペンモード";
+				}
+			}
+			
+			
+			
+			c.font = "20px MSゴシック";
+			c.fillStyle = "white";
+			c.fillText(text,sx + this.bx + (this.bw / 6) + this.btx,sy + (innerh +this.by) + (this.bh / 1.5));
+		}
+		bclick(){
+			if(cx > this.bx && cx < this.bx + this.bw){
+				if(cy > this.by + innerh + 50 && cy < (this.by + innerh) + this.bh + 50){
+				if(this.name == "暗記ペン"){
+				 onetouchF = false;
+				 if(ankipenmode == false){
+					ankipenmodeN = true;
+				 }
+							 
+				 if(ankipenmode == true){
+					 ankipenmodeN = false;
+				 }
+				 
+				 	 ankipenmode = ankipenmodeN;
+				
+				}
+					if(this.name == "暗記シート再表示"){
+					for(var i = 0;i < ankiseets.length;i++){
+					ankiseets[i].showmode = true;
+					}
+
+				}
+					if(this.name == "暗記シートリセット"){
+						var result = window.confirm("暗記シートをリセットしますか？");
+						if(result == true){
+							ankiseets = [];
+						}
+					}
+					if(this.name == "一つ戻る"){
+						ankiseets.pop();
+					}
+					
+				}
+			}
+
+		}
+		
+		}
+
+	class ankiseet{
+	constructor(fx,fy,ex,ey){
+		this.fx = fx;
+		this.fy = fy;
+		this.ex = ex;
+		this.ey = ey;
+		this.number = ankiseets.length - 1;
+		this.showmode = true;
+	}
+	show(){
+	if(this.showmode == true){
+		c.fillStyle = "red";
+		c.fillRect(this.fx,this.fy,this.ex - this.fx,this.ey - this.fy);
+		}
+	}
+	onclickcheck(mx,my){
+		var mX = mx;
+		var mY = my;
+		if(ankipenmode == false){
+			if(this.fx < this.ex && this.fy < this.ey){
+				if(mX > this.fx && mX < this.ex){
+					if(mY - 50 > this.fy && mY - 50 < this.ey){
+						this.showmode = false;
+					}
+				}
+			}
+			if(this.fx > this.ex && this.fy < this.ey){
+				if(mX < this.fx && mX > this.ex){
+					if(mY - 50 > this.fy && mY - 50 < this.ey){
+						this.showmode = false;
+					}
+				}
+			}
+			if(this.fx < this.ex && this.fy > this.ey){
+				if(mX > this.fx && mX < this.ex){
+					if(mY - 50 < this.fy && mY - 50 > this.ey){
+						this.showmode = false;				}
+				}
+			}
+			if(this.fx > this.ex && this.fy > this.ey){
+				if(mX < this.fx && mX > this.ex){
+					if(mY - 50 < this.fy && mY - 50 > this.ey){
+						this.showmode = false;
+					}
+				}
+			}
+		}
+	}
+	
+}
+		innerh = window.innerHeight;
+		let B_ankipen = new Button(10,-110,200,40,"暗記ペン",0);
+		let B_reshow = new Button(240,-110,200,40,"暗記シート再表示",-10);
+	   	let B_resetankiseet = new Button(458,-110,200,40,"暗記シートリセット",-20);
+		let B_undo = new Button(680,-110,100,40,"一つ戻る",-10);
+		
+		
+		function loop(){
+
+			sx = window.scrollX;
+			sy = window.scrollY;
+			
+			innerh = window.innerHeight;
+			
+			c.clearRect(0,0,3000,5000);
+			
+			c.fillStyle = "dimgray";
+			c.font = "14px 'ＭＳ ゴシック'";
+			c.fillText("ボタンが見当たらないときは画面を縮小して画面の比を正しくしてください。",sx + 2,sy + 15);
+		//	c.fillText(cx,10,80);
+		//	c.fillText(cy,50,80);
+		for(var i = 0;i < ankiseets.length;i++){
+			ankiseets[i].show();
+			
+		}
+			B_ankipen.show();
+			B_reshow.show();
+			B_resetankiseet.show();
+			B_undo.show();
+		}
+		setInterval(loop,1);
+
+		document.addEventListener('mousemove', logKey);
+		function logKey(e){
+			cx = e.clientX;
+			cy = e.clientY;
+		}
+		
+		function sizeup(){
+			canvas2.height += 100;
+			canvas1.height += 100;
+			canvas1.width += 100;
+			canvas2.width += 100;
+		
+			func2(file,true);
+		}
+		function sizedown(){
+			canvas2.height -= 100;
+			canvas1.height -= 100;	
+			canvas1.width -= 100;
+			canvas2.width -= 100;
+	
+			func2(file,true);
+		}
+		let px = 0;
+		let py = 0;
+		
+		document.body.addEventListener("mousemove", function(e){
+			px = event.pageX;
+			py = event.pageY;
+ 		});
+		document.addEventListener("mousedown", function(){
+			B_ankipen.bclick();
+			B_reshow.bclick();
+			B_resetankiseet.bclick();
+			B_undo.bclick();
+				
+			if(py > 50 && cy < window.innerHeight - 80){
+				overclick = false;
+			}else{
+				overclick = true;
+			}
+			if(ankipenmode == true){
+				firstpointX = px;
+				firstpointY = py - 50;
+			}
+			for(var i = 0;i < ankiseets.length;i++){
+			ankiseets[i].onclickcheck(px,py);	
+		}
+		});
+		document.addEventListener("mouseup", function(){
+			if(ankipenmode == true){
+				endpointX = px;
+				endpointY = py - 50;
+			if(py > 50 && cy < window.innerHeight - 80 && overclick == false){
+				ankiseets[ankiseets.length] = new ankiseet(firstpointX,firstpointY,endpointX,endpointY);
+				}
+			}
+			
+		});
+		let imn = "";
+		let sizestring = "";
+		let sizes = [];
+function saveankiseet(){
+localStorage.setItem(nowfile, JSON.stringify(ankiseets));
+imn = String(localStorage.getItem("imagenames"));
+imagenames = imn.split(",");
+var ok = true;
+for(var i = 0; i < imagenames.length;i++){
+	if(nowfile == imagenames[i]){
+	ok = false;
+	}
+}
+if(ok == true){
+	imagenames[imagenames.length] = nowfile;
+}
+localStorage.setItem("imagenames",imagenames);
+
+sizes[0] = canvas1.width;
+sizes[1] = canvas1.height;
+sizes[2] = canvas2.width;
+sizes[3] = canvas2.height;
+localStorage.setItem(nowfile + "-size", sizes);
+
+return imn;	
+
+//	localStorage.setItem("ankiseets",ankiseets);
+}
+let imnss = [];
+function loadankiseet(){
+	
+	var aseets = JSON.parse(localStorage.getItem(nowfile));
+	ankiseets = [];
+	
+	for(var i = 0; i < imns.length; i++){
+		if(nowfile == imns[i]){
+			for(var i2 = 0; i2 < aseets.length; i2++){
+				ankiseets[i2] = new ankiseet(aseets[i2].fx,aseets[i2].fy,aseets[i2].ex,aseets[i2].ey);
+			}
+		}
+	}
+	
+	sizestring = localStorage.getItem(nowfile + "-size");
+	sizes = sizestring.split(",");
+	
+	canvas1.width = Number(sizes[0]);
+	canvas1.height = Number(sizes[1]);
+	canvas2.width = Number(sizes[2]);
+	canvas2.height = Number(sizes[3]);
+	
+	func2(file,true);
+
+}
+function removeankiseet(){
+		var result = window.confirm("全ての暗記シートのデータを削除しますか？");
+	if(result == true){
+		reset();
+	}
+}
+
+		
+	</script>
+	<style>
+		html {
+  			touch-action: manipulation;
+		}
+		#inputfile{
+			position: absolute;
+			top: 0px;
+		}
+		#canvas1{
+			position: absolute;
+			top: 50px;
+			left:0px;
+			z-index:2;
+		}
+		#canvas2{
+			position: absolute;
+			top: 50px;
+			left: 0px;
+			z-index:1;
+		}
+	</style>
+	</body>
+</html>

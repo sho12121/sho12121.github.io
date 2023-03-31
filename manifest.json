@@ -1,7 +1,7 @@
 {
-  "name": "テストアプリ - TestApp",
-  "short_name": "TestApp",
-  "description": "PWAのテストアプリです。",
+  "name": "sho12121_site",
+  "short_name": "sho12121_site",
+  "description": "",
   "icons": [
     {
       "src": "icons/manifest-icon-192.maskable.png",
@@ -30,6 +30,6 @@
   ],
   "start_url": "/index.html",
   "display": "standalone",
-  "theme_color": "#0000FF",
-  "background_color": "#0000FF"
+  "theme_color": "#000000",
+  "background_color": "#000000"
 }

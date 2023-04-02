@@ -35,50 +35,26 @@
     <link rel="apple-touch-startup-image" href="icons/apple-splash-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
     <link rel="apple-touch-startup-image" href="icons/apple-splash-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
   <meta name="theme-color" content="#000000">
+  
   <script>
-  // イベントを発火させずに保持
-  window.addEventListener('beforeinstallprompt', function(event) {
-      event.preventDefault();
-      defferedPrompt = event;
-      return false;
-  })
-   
-  // イベントを意図的に発火
-  function pwaInstall() {
-      console.log('pwaInstall Click.');
-      if (defferedPrompt) {
-          defferedPrompt.prompt();
-          defferedPrompt.userChoice.then(function(choiceResult) {
-              if (choiceResult.outcome === 'dismissed') {
-                  console.log('pwaInstall Click.');
-              } else {
-                  window.alert('Thank You!');
-              }
-          });
-          defferedPrompt = null;
-      }
-  }
-</script>
-</head>
-  <body>
-    <ul>
-      <li>Home</li>
-    <li>作品集</li>
-    <div>
-    <button onclick="pwaInstall">ダウンロード</button>
-  </div>
-  </ul>
-    <a href="Memorization/Memorization_pc.html">"暗記"の作品ページへのリンク(pc版)</a>
-    <a href="Memorization/Memorization_mobile.html">"暗記"の作品ページへのリンク(スマホ版)</a>
-    <script>
-        if ('serviceWorker' in navigator) {
+     if ('serviceWorker' in navigator) {
           navigator.serviceWorker.register('service-worker.js').then(reg => {
             console.log('サービスワーカーを登録しました', reg);
           }).catch(err => {
             console.log('登録失敗', err);
           });
         }
-  
-        </script> 
+   </script>
+<link rel="stylesheet" href="home/home.css">
+
+   </head>
+<body>
+  <canvas id="canv"></canvas>
+  <a href="index.html">home</a>
+  <a href="Memorization/Memorization_mobile.html">暗記アプリ(mobile版)</a>
+  <a href="Memorization/Memorization_pc.html">暗記アプリ(PC版)</a>
+
 </body>
+<script src="home/home.js"></script>
+
 </html>
